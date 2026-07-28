@@ -15,7 +15,7 @@
 
 
 const REQUIRED_VAL = ["PORT", "MONGODB_NAME", "MONGODB_URL", "REDIS_HOST", "REDIS_PORT", 
-                    "REDIS_USERNAME", "REDIS_PASSWORD"];   // create arry of strings
+                    "REDIS_USERNAME", "REDIS_PASSWORD", "REDIS_TTL"];   // create arry of strings
 
 
 function getConfig(){
@@ -63,6 +63,7 @@ function getConfig(){
     const redis_port = process.env.REDIS_PORT;
     const redis_username = process.env.REDIS_USERNAME;
     const redis_password = process.env.REDIS_PASSWORD;
+    const redis_ttl = process.env.REDIS_TTL;
 
 
 
@@ -83,7 +84,8 @@ function getConfig(){
             host : redis_host,
             port : redis_port,
             username : redis_username,
-            password : redis_password
+            password : redis_password,
+            ttl : redis_ttl
         }
 
 
