@@ -15,8 +15,14 @@ DOTENV.config()
 
 // Below we are importing database.js
 const db = require("./src/configs/database")
+db.connectDB();
+
 /* Now here with the above code of dotenv and db we are done with config folder */
 
+
+/* Below is to initilize Cache */
+const redis = require("./src/cache/redisCache")
+redis.connectRedis();
 
 
 

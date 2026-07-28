@@ -14,7 +14,8 @@
 // populated. This file assumes that's true and just reads it.
 
 
-const REQUIRED_VAL = [PORT, MONGODB_NAME, MONGODB_URL, REDIS_URL]
+const REQUIRED_VAL = ["PORT", "MONGODB_NAME", "MONGODB_URL", "REDIS_HOST", "REDIS_PORT", 
+                    "REDIS_USERNAME", "REDIS_PASSWORD"];   // create arry of strings
 
 
 function getConfig(){
@@ -58,14 +59,20 @@ function getConfig(){
     const port = process.env.PORT;
     const mongodb_name = process.env.MONGODB_NAME;
     const mongodb_url = process.env.MONGODB_URL;
-    const redis_url = process.env.REDIS_URL;
+    const redis_host = process.env.REDIS_HOST;
+    const redis_port = process.env.REDIS_PORT;
+    const redis_username = process.env.REDIS_USERNAME;
+    const redis_password = process.env.REDIS_PASSWORD;
 
 
 
     // below dictonary will contain all the variables and this will be return by this function
     const configStore = {
+
+        // server port
         port,
 
+        // used for main storage
         db : {
             uri : mongodb_url,
             name : mongodb_name
@@ -73,7 +80,10 @@ function getConfig(){
 
         // used for cache, fast lookup
         redis : {
-            uri : redis_url
+            host : redis_host,
+            port : redis_port,
+            username : redis_username,
+            password : redis_password
         }
 
 
