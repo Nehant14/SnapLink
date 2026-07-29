@@ -1,4 +1,3 @@
-
 // Now we are creating custom Error showing file with are custom HTTP status code
 
 class NotFoundError extends Error
@@ -89,6 +88,83 @@ class TooManyRequestError extends Error
 
 
 module.exports = {ValidationError, ConflictError, TooManyRequestError, UnauthorizedError, NotFoundError};
+
+
+
+
+
+
+
+// we can also use the below cleaner code :
+
+// class AppError extends Error {
+
+//   constructor(message, statusCode, isOperational = true) {
+
+//     super(message);
+
+//     this.name = this.constructor.name;
+//     this.statusCode = statusCode;
+//     this.isOperational = isOperational;
+
+//     Error.captureStackTrace(this, this.constructor);
+
+//   }
+
+// }
+
+// class NotFoundError extends AppError {
+
+//   constructor(message = "Resource not found") {
+//     super(message, 404);
+//   }
+
+// }
+
+// class ConflictError extends AppError {
+
+//   constructor(message = "Resource already exists") {
+//     super(message, 409);
+//   }
+
+// }
+
+// class ValidationError extends AppError {
+
+//   constructor(message = "Validation failed", details = null) {
+
+//     super(message, 400);
+
+//     this.details = details;
+
+//   }
+
+// }
+
+// class UnauthorizedError extends AppError {
+
+//   constructor(message = "Unauthorized") {
+//     super(message, 401);
+//   }
+
+// }
+
+// class TooManyRequestsError extends AppError {
+
+//   constructor(message = "Too many requests") {
+//     super(message, 429);
+//   }
+
+// }
+
+// module.exports = {
+//   AppError,
+//   NotFoundError,
+//   ConflictError,
+//   ValidationError,
+//   UnauthorizedError,
+//   TooManyRequestsError,
+// };
 
 
 

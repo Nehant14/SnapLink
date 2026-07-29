@@ -35,40 +35,33 @@ const connectDB = async () => {
 // const connectDB = await mongoose.connect(config.db.uri);  // both the above and this method is correct
 
 
+// closeDB() is called when the server shuts down (SIGTERM/SIGINT)
+// It closes the mongoose connection properly instead of letting the
+// process die with an open socket
+const closeDB = async () => {
+
+    await mongoose.connection.close();
+    console.log("Database Connection Closed");
+
+};
 
 
+// getDb() is not strictly needed with mongoose the way it was with the
+// raw driver (mongoose keeps its own internal connection singleton and
+// models talk to it directly) — but exporting mongoose.connection here
+// in case anything ever needs the raw connection object (e.g. checking
+// readyState, or running a native command)
+const getDb = () => {
 
-// Now after connecting we define schemas :
-
-const Schema = mongoose.Schema;      // First we define the object before using
-
-// URI is different from URL : some other knowledge
-const urlSchema = new Schema({
-
-    shortURL: {
-        type: String,
-        required: true,
-        unique: true
-    },
-
-    originalURL: {
-        type: String,
-        required: true
+    if (mongoose.connection.readyState !== 1) {
+        throw new Error("Database not connected yet");
     }
+    return mongoose.connection;
 
-});
+};
 
-// Create the model
-const URLStore = mongoose.model('URL', urlSchema);
-
-
-// // Export both so that other files can use them
-module.exports = {connectDB, URLStore};
-
-
-
-
-
+// Now we just exported our connectDB, closeDB and getDB. 
+module.exports = { connectDB, closeDB, getDb };
 
 
 
