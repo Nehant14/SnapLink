@@ -3,6 +3,12 @@
 const BASE62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
+// you may think that as we want to encrypt the url which contain number + alphabet and many things then
+// then how this encoder that only encodes the numericID only will work
+// answer is that when we store the original link in database, the database gives us a numericID for the original link
+// we encode that numericID and then decode it to search that index to get the original link
+
+
 function encode(numericID){
 
     let ans = "";
