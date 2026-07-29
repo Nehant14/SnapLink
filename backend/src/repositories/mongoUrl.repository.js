@@ -66,6 +66,7 @@ class MongoUrlRepo {
         return doc !== null;   // if available then return true else false
     }
 
+    // Delete operation is not yet added
 
 }
 
