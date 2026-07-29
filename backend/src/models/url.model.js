@@ -84,7 +84,7 @@ const urlSchema = new Schema({
     // MongoDB's background reaper (runs every ~60s) automatically deletes
     // any document once expires_at is in the past. We don't need a manual
     // cron job / deleteExpired() function because of this.
-    expires_at: {
+    expiresAt: {
         type: Date,
         default: null,
         index: { expireAfterSeconds: 0 }
