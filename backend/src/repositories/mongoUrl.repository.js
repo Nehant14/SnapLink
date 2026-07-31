@@ -57,6 +57,7 @@ class MongoUrlRepo {
 
         return this.model.findOne({shortURL : shortCode}).lean();   
         // .lean convert mongoose document (that has method) to js object (remember : js object are like dictonary in python)
+        // js object will contain all fields of the SCHEMA
     }
 
     async isShortCodeAvailable(shortCode){
