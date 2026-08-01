@@ -33,7 +33,10 @@ function getConfig(){
     const redis_password = process.env.REDIS_PASSWORD;
     const redis_ttl = process.env.REDIS_TTL;
 
-
+    // below one is for rate limiting
+    rate_limit_window_ms = process.env.RATE_LIMIT_WINDOW_MS || 15*60*100;  // tells 15min (is is 15 * 60 * 1000 (milliseconds))
+    rate_limit_max = process.env.RATE_LIMIT_MAX || 100  // tells number of request
+    // above value tell about 100 requests per 15 min
 
     // below dictonary will contain all the variables and this will be return by this function
     const configStore = {
@@ -54,7 +57,13 @@ function getConfig(){
             username : redis_username,
             password : redis_password,
             ttl : redis_ttl
-        }
+        },
+
+        // used by rateLimiter.js to protect the shorten endpoint from spam
+        rateLimit : {
+            windowMs : rate_limit_window_ms,
+            max : rate_limit_max
+        },
 
 
     }

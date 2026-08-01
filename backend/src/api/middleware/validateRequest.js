@@ -2,14 +2,14 @@ const { ValidationError } = require("../../utils/error");
 
 
 // it takes zod schema as argument, we are exporting this function to the other file and 
-// in that file will will use this middleware function to do the task
+// in that file we will use this middleware function to do the task
 function validateRequest(schema) {
 
     // we will return the below arrow function (we are return function(middleware) from the function(validateRequest))
     const middleware = (req, res, next) => {
 
+        // checking if it satisfies the schema (zod one)
         const result = schema.safeParse(req.body);
-
 
         if (!result.success) {
 
