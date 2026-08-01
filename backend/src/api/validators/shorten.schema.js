@@ -1,28 +1,4 @@
-
 const {z} = require("zod");
-
-
-// it is used for validation
-/*
-without zod you have to write manually like for the below :
-
-app.post("/shorten", (req, res) => {
-    const { longUrl } = req.body;
-
-    // What if longUrl is missing or is a number?
-});
-
-you have to manually write:
-if (!longUrl) {
-    return res.status(400).json({ error: "Missing URL" });
-}
-
-if (typeof longUrl !== "string") {
-    return res.status(400).json({ error: "URL must be a string" });
-}
-
-*/
-
 
 
 const shortenSchema = z.object({
