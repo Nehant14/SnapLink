@@ -22,7 +22,7 @@ function validateRequest(schema) {
             return next(new ValidationError('Invalid request body', details));
         }
 
-        // Replace req.body with the validated data.
+        // Replace req.body with the validated data. (possibly updated according to zod schema)
         // This ensures the NEXT middleware or controller receives clean, validated input.
         req.body = result.data;
 
