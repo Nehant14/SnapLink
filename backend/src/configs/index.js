@@ -38,11 +38,23 @@ function getConfig(){
     rate_limit_max = process.env.RATE_LIMIT_MAX || 100  // tells number of request
     // above value tell about 100 requests per 15 min
 
+
+    const node_env = process.env.NODE_ENV || 'development';
+    const base_url = process.env.BASE_URL || `http://localhost:${port}`;
+
+
+
     // below dictonary will contain all the variables and this will be return by this function
     const configStore = {
 
         // server port
         port,
+
+        // environment ('development' / 'production' / 'test')
+        nodeEnv : node_env,
+
+        // used to build the full short link, e.g. baseUrl + "/" + shortCode
+        baseUrl : base_url,
 
         // used for main storage
         db : {
