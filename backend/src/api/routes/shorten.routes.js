@@ -10,3 +10,4 @@ const router = express.Router();
 // when someone send request to '/' then this one rund, you can see validateRequest is provided with shortenSchema as argumnet as it need schema as argument
 router.post('/', rateLimiter, validateRequest(shortenSchema), shortenController.create)
 
+module.exports = router
