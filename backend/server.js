@@ -2,25 +2,55 @@
 const DOTENV = require("dotenv");
 DOTENV.config();
 
-const db = require("./src/configs/database");
-const redis = require("./src/cache/redisCache");
-const app = require("./src/app");
+const createApp = require('./src/app');
+const config = require('./src/config');
+const { connectDB, closeDB } = require('./src/config/database');
 
+let server;
 
-const startServer = async () => {
+async function start() {
 
-    await db.connectDB();
+    try {
 
-    await redis.connectRedis();
+        // connect to MongoDB before accepting any traffic
+        await connectDB();
 
-    const PORT = process.env.PORT;
+        const app = createApp();
 
-    app.listen(PORT, () => {
-        console.log(`Server is running at PORT : ${PORT}`);
-    });
+        // config.port is port available in config file
+        server = app.listen(config.port, () => {
+            console.log(`Server running on port ${config.port} [${config.nodeEnv}]`);
+        });
 
-};
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
 
+}
 
-startServer();
+// Graceful shutdown, stop accepting new requests, close DB connection,
+// then exit cleanly. Important so in-flight requests aren't just killed
+// mid-response when the process is asked to stop (e.g. by Docker, PM2,
+// or a deploy tool sending SIGTERM).
+async function shutdown(signal) {
 
+    console.log(`${signal} received, shutting down gracefully...`);
+
+    if (server) {
+        server.close(async () => {
+            console.log('HTTP server closed');
+            await closeDB();
+            process.exit(0);
+        });
+    } else {
+        await closeDB();
+        process.exit(0);
+    }
+
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+start();
