@@ -12,12 +12,10 @@ function errorHandler(err, req, res, next){
             message : err.message,
         }
 
-        // here we are adding a new field called detail to response (only if it exists), so total field od response becomes -> error, message and detail
         if(err.detail) {
             response.detail = err.detail
         }
 
-        // below is like res -> response sent, res.status(err.statusCode) -> sets the status code of the response, then .json({}) is the actual response which is in json format
         return res.status(err.statusCode).json(response);
     }
 
