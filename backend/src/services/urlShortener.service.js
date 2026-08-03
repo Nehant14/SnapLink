@@ -1,4 +1,3 @@
-
 const {ConflictError, NotFoundError} = require("../utils/error")
 
 
@@ -36,27 +35,27 @@ class UrlShortenerService {
 
     }
 
-    async shortenUrl(longUrl, customShortCode, expiresAt){
+    async createShortUrl({ longUrl, customShortCode, expiresAt }){
 
         let shortUrl;
 
         if(customShortCode){    // if they pass custom shortcode then only if will work otherwise not
 
-            const isTaken = this.repository.isShortCodeAvailable(customShortCode);
+            const isAvailable = await this.repository.isShortCodeAvailable(customShortCode);
 
-            if(isTaken){   // if taken error will be thrown
-                
+            if(!isAvailable){   // if taken error will be thrown
+
                 throw new ConflictError(`${customShortCode} is already taken`);
 
             }
-            
+
             // if not taken then we will pass 
             shortUrl = customShortCode;
 
         }else{
 
-            const numericId = this.repository.getNextId();
-            shortCode = this.encode(numericId);
+            const numericId = await this.allocator.getNextId();
+            shortUrl = this.encode(numericId);
         }
 
         let parsedExpiresAt;
@@ -82,24 +81,24 @@ class UrlShortenerService {
 
     async resolveShortCode(shortCode){
 
-        const cached = this.cache.get(shortCode);
+        const cached = await this.cache.get(shortCode);
 
         if(cached){
 
             return cached;
         }
 
-        const record = this.repository.findShortCode(shortCode);
+        const record = await this.repository.findShortCode(shortCode);
 
         // is Expired is the private function that we wrote at the end of the class
-        if(!record || this.isExpired(shortCode)){
+        if(!record || await this.isExpired(record)){
             throw new NotFoundError(`${shortCode} is not found`);
         }
 
         // we are setting cache first
-        this.cache.set(shortCode, record.OriginalUrl);
+        await this.cache.set(shortCode, record.originalURL);
 
-        return record.OriginalUrl;
+        return record.originalURL;
     }
 
 
@@ -110,7 +109,7 @@ class UrlShortenerService {
             return false;
         }
 
-        return new Date(this.expiresAt) < new Date();   // this checks if the expired date is less than todays date
+        return new Date(record.expiresAt) < new Date();   // this checks if the expired date is less than todays date
     }
 }   
 

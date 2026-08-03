@@ -1,4 +1,3 @@
-
 // this one is the controller for shortening url
 
 const config = require("../../configs/index")
@@ -8,7 +7,7 @@ async function create(req, res, next){
 
     try{
 
-        const {longUrl, customShortCode, expiresAt} = req.body;
+        const {longUrl, customAlias, expiresAt} = req.body;
 
         // it is the shortCode
 
@@ -25,9 +24,9 @@ async function create(req, res, next){
         //     encode
         // );
 
-        const shortCode = await req.app.local.urlShortenerService.createShortUrl({
+        const shortCode = await req.app.locals.urlShortenerService.createShortUrl({
             longUrl : longUrl,
-            customShortCode : customShortCode,
+            customShortCode : customAlias,
             expiresAt : expiresAt
         });
 
@@ -35,7 +34,7 @@ async function create(req, res, next){
         // so in total it becomes -> bitly.com/3lhjv3k
         const shortUrl = `${config.baseUrl}/${shortCode}`;
 
-        req.status(201).json({shortUrl : shortUrl});
+        res.status(201).json({shortUrl : shortUrl});
 
 
 

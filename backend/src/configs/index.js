@@ -1,4 +1,3 @@
-
 // This file is used by us to process .env files and send .env variable to all the files from this single file
 /**
  * It goes like :
@@ -28,19 +27,22 @@ function getConfig(){
     const mongodb_name = process.env.MONGODB_NAME;
     const mongodb_url = process.env.MONGODB_URL;
     const redis_host = process.env.REDIS_HOST;
-    const redis_port = process.env.REDIS_PORT;
+    const redis_port = Number(process.env.REDIS_PORT);
     const redis_username = process.env.REDIS_USERNAME;
     const redis_password = process.env.REDIS_PASSWORD;
-    const redis_ttl = process.env.REDIS_TTL;
+    const redis_ttl = Number(process.env.REDIS_TTL);
 
     // below one is for rate limiting
-    rate_limit_window_ms = process.env.RATE_LIMIT_WINDOW_MS || 15*60*100;  // tells 15min (is is 15 * 60 * 1000 (milliseconds))
-    rate_limit_max = process.env.RATE_LIMIT_MAX || 100  // tells number of request
+    const rate_limit_window_ms = Number(process.env.RATE_LIMIT_WINDOW_MS) || 15*60*1000;  // 15min in milliseconds
+    const rate_limit_max = Number(process.env.RATE_LIMIT_MAX) || 100  // tells number of request
     // above value tell about 100 requests per 15 min
 
 
     const node_env = process.env.NODE_ENV || 'development';
     const base_url = process.env.BASE_URL || `http://localhost:${port}`;
+
+    // block size used by RangeAllocator to reserve numeric IDs in batches
+    const id_gen_block_size = Number(process.env.IDGEN_BLOCK_SIZE) || 1000;
 
 
 
@@ -75,6 +77,11 @@ function getConfig(){
         rateLimit : {
             windowMs : rate_limit_window_ms,
             max : rate_limit_max
+        },
+
+        // used by RangeAllocator to reserve blocks of numeric ids at once
+        idGen : {
+            blockSize : id_gen_block_size
         },
 
 

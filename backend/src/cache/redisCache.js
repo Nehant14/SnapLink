@@ -29,9 +29,13 @@ class RedisCacheFunctions {
 
     }
 
-    async set(key, value, ttlSeconds){
+    async set(key, value, ttlSeconds = config.redis.ttl){
 
-        await client.set(key, value, ttlSeconds);
+        if(ttlSeconds){
+            await client.set(key, value, 'EX', ttlSeconds);
+        } else {
+            await client.set(key, value);
+        }
     }
 
     async del(key){

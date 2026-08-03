@@ -62,9 +62,9 @@ class MongoUrlRepo {
 
     async isShortCodeAvailable(shortCode){
 
-        const doc = this.model.findOne({shortURL : shortCode});
+        const doc = await this.model.findOne({shortURL : shortCode});
 
-        return doc !== null;   // if available then return true else false
+        return doc === null;   // if no doc found, the code is available (true); if found, it's taken (false)
     }
 
     // Delete operation is not yet added
@@ -73,5 +73,4 @@ class MongoUrlRepo {
 
 
 // now we are exporting a class so if this is imported in other file, first we have to create its instance first
-module.exports = MongoUrlRepo;  
-
+module.exports = MongoUrlRepo;

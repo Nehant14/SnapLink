@@ -4,8 +4,6 @@ const redirectController = require("../controllers/redirect.controller")
 
 const router = express.Router();
 
-router.post('/:shortCode', redirectController.resolve)
+router.get('/:shortCode', redirectController.resolve)
 
 module.exports = router;
-
-
