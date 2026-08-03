@@ -1,38 +1,101 @@
-const { ValidationError } = require("../../utils/error");
+// This file is used by us to process .env files and send .env variable to all the files from this single file
+/**
+ * It goes like :
+ *      .env ----> src/configs/index.js  ----> then all other files
+ */
 
 
-// it takes zod schema as argument, we are exporting this function to the other file and 
-// in that file we will use this middleware function to do the task
-function validateRequest(schema) {
-
-    // we will return the below arrow function (we are return function(middleware) from the function(validateRequest))
-    const middleware = (req, res, next) => {
-
-        // checking if it satisfies the schema (zod one)
-        const result = schema.safeParse(req.body);
-
-        if (!result.success) {
+const REQUIRED_VAL = ["PORT", "MONGODB_NAME", "MONGODB_URL", "REDIS_HOST", "REDIS_PORT", 
+                    "REDIS_USERNAME", "REDIS_PASSWORD", "REDIS_TTL"];   // create arry of strings
 
 
-            const details = result.error.issues.map((issue) => ({
-                field: issue.path.join('.'),
-                message: issue.message,
-            }));
-
-            return next(new ValidationError('Invalid request body', details));
-        }
-
-        // Replace req.body with the validated data. (possibly updated according to zod schema)
-        // This ensures the NEXT middleware or controller receives clean, validated input.
-        req.body = result.data;
+function getConfig(){
 
 
-        next();
-        
+    // This is the best which give all the missing keys
+    const missing = REQUIRED_VAL.filter((key) => !process.env[key]);
+    if (missing.length > 0) {
+        throw new Error(
+        `Missing required environment variable(s): ${missing.join(', ')}`  
+        );
     }
 
-    // now we are returning the arrow function
-    return middleware;
+    
+
+
+    const port = process.env.PORT;
+    const mongodb_name = process.env.MONGODB_NAME;
+    const mongodb_url = process.env.MONGODB_URL;
+    const redis_host = process.env.REDIS_HOST;
+    const redis_port = Number(process.env.REDIS_PORT);
+    const redis_username = process.env.REDIS_USERNAME;
+    const redis_password = process.env.REDIS_PASSWORD;
+    const redis_ttl = Number(process.env.REDIS_TTL);
+
+    // below one is for rate limiting
+    const rate_limit_window_ms = Number(process.env.RATE_LIMIT_WINDOW_MS) || 15*60*1000;  // 15min in milliseconds
+    const rate_limit_max = Number(process.env.RATE_LIMIT_MAX) || 100  // tells number of request
+    // above value tell about 100 requests per 15 min
+
+
+    const node_env = process.env.NODE_ENV || 'development';
+    const base_url = process.env.BASE_URL || `http://localhost:${port}`;
+
+    // block size used by RangeAllocator to reserve numeric IDs in batches
+    const id_gen_block_size = Number(process.env.IDGEN_BLOCK_SIZE) || 1000;
+
+
+
+    // below dictonary will contain all the variables and this will be return by this function
+    const configStore = {
+
+        // server port
+        port,
+
+        // environment ('development' / 'production' / 'test')
+        nodeEnv : node_env,
+
+        // used to build the full short link, e.g. baseUrl + "/" + shortCode
+        baseUrl : base_url,
+
+        // used for main storage
+        db : {
+            uri : mongodb_url,
+            name : mongodb_name
+        },
+
+        // used for cache, fast lookup
+        redis : {
+            host : redis_host,
+            port : redis_port,
+            username : redis_username,
+            password : redis_password,
+            ttl : redis_ttl
+        },
+
+        // used by rateLimiter.js to protect the shorten endpoint from spam
+        rateLimit : {
+            windowMs : rate_limit_window_ms,
+            max : rate_limit_max
+        },
+
+        // used by RangeAllocator to reserve blocks of numeric ids at once
+        idGen : {
+            blockSize : id_gen_block_size
+        },
+
+
+    }
+
+
+    // we freeze before returning
+    return Object.freeze(configStore);
+
+
 }
 
-module.exports = validateRequest;
+
+const config = getConfig();
+
+
+module.exports = config;

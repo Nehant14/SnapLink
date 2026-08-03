@@ -1,5 +1,3 @@
-
-
 const BASE62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
@@ -10,6 +8,10 @@ const BASE62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
 function encode(numericID){
+
+    if(numericID === 0){
+        return BASE62[0];
+    }
 
     let ans = "";
     while(numericID > 0){

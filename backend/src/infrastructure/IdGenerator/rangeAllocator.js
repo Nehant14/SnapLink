@@ -1,4 +1,4 @@
-const counter = require("../../models/counter.model")
+const Counter = require("../../models/counter.model")
 
 // We are using RangeAllocator to increase performace and also to Isolate each requrest so they should not interfere
 // This is to conserver ACID property
@@ -24,7 +24,7 @@ class rangeAllocator{
 
         const result = await Counter.findOneAndUpdate(
             { _id: 'short_code' },
-            { $inc: { current_max: this.blockSize } },
+            { $inc: { current_max: this.BlockSize } },
             { new: true, upsert: true }
             // new: true      -> return the document AFTER the update (Mongoose's
             //                    equivalent of the raw driver's returnDocument: 'after')
@@ -36,7 +36,7 @@ class rangeAllocator{
         const newMax = result.current_max;
 
         this.maxIdinBlock = newMax;
-        this.currentID = newMax - this.blockSize;
+        this.currentID = newMax - this.BlockSize;
     }
 
     
@@ -61,5 +61,3 @@ class rangeAllocator{
 }
 
 module.exports = rangeAllocator;
-
-
