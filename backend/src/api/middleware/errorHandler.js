@@ -1,4 +1,3 @@
-
 // This is main error handler
 
 function errorHandler(err, req, res, next){
@@ -31,5 +30,4 @@ function errorHandler(err, req, res, next){
 }
 
 
-module.exports = {errorHandler};
-
+module.exports = errorHandler;

@@ -35,4 +35,4 @@ function validateRequest(schema) {
     return middleware;
 }
 
-module.exports = {validateRequest};
+module.exports = validateRequest;

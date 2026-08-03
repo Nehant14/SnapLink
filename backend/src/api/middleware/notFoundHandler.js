@@ -1,7 +1,6 @@
-
 // this one is for a route that is not found (or the route that doesn't exists)
 
-function notFoundError(req, res){
+function notFoundHandler(req, res){
 
     return res.status(404).json({
         error : "NotFoundError",
@@ -9,4 +8,4 @@ function notFoundError(req, res){
     })
 }
 
-module.exports = {notFoundError};
+module.exports = notFoundHandler;

@@ -17,4 +17,4 @@ const limiter = rateLimit({
 
 })
 
-module.exports = {limiter};
+module.exports = limiter;
