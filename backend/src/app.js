@@ -6,12 +6,12 @@ const notFoundHandler = require('./api/middleware/notFoundHandler');
 const errorHandler = require('./api/middleware/errorHandler');
 
 const MongoUrlRepository = require('./repositories/mongoUrl.repository');
-const redisCache = require('./cache/redisCache');
-const RangeAllocator = require('./infrastructure/idGenerator/rangeAllocator');
-const { encode } = require('./infrastructure/idGenerator/base62');
+const { redisCache } = require('./cache/redisCache');
+const RangeAllocator = require('./infrastructure/IdGenerator/rangeAllocator');
+const { encode } = require('./infrastructure/IdGenerator/base62');
 const UrlShortenerService = require('./services/urlShortener.service');
 
-const config = require('./config');
+const config = require('./configs');
 
 
 function createApp() {
@@ -20,7 +20,7 @@ function createApp() {
 
     app.use(helmet());
     //express.json() is middleware that parses incoming requests with a JSON body and stores the parsed object in req.body.
-    app.use(express.json);
+    app.use(express.json());
 
 
     app.get('/health', (req ,res) => {
@@ -58,5 +58,3 @@ function createApp() {
 
 
 module.exports = {createApp};
-
-
