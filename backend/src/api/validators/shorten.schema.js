@@ -8,7 +8,7 @@ const shortenSchema = z.object({
     customAlias: z.string()
         .min(3, 'customAlias must be at least 3 characters')
         .max(20, 'customAlias must be at most 20 characters')
-        .regex(/^[a-zA-Z0-9]+$/, 'customAlias must be alphanumeric')
+        .regex(/^[a-zA-Z0-9-]+$/, 'customAlias must contain only letters, numbers, and hyphens')
         .optional(),
     // .optional() means the field is not compulsary, if it is missing then also OK
 

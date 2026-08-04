@@ -51,7 +51,7 @@ export default function ShortenForm({ onSubmit, loading, fieldErrors }) {
         <div className="options-grid">
           <div className="field">
             <label htmlFor="customAlias" className="field__label">
-              Custom alias <span className="field__hint">optional · 3–20 letters or numbers</span>
+              Custom alias <span className="field__hint">optional · 3–20 letters, numbers, or hyphens</span>
             </label>
             <input
               id="customAlias"
