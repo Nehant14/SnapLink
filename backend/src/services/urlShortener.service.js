@@ -2,29 +2,9 @@ const {ConflictError, NotFoundError} = require("../utils/error")
 
 
 
-// Here we are writing the whole UrlShortener flow and how different files will be used at once
-// But here we will not import any of the file, we will just make a constructore so that when 
-// we import files (all files with this one) in app.js and pass CLASS INSTANCES to the constructor of the class 
-// then everything will start to work
-
-// to understanc this file think like : in other file we import this file :
-/*
-
-we pass : const instance = UrlShortenerService(new MongoUrlRepo, redisCache .....)
-we passed an instance of MongoUrlRepo class to this class constructor for it to use
-so this.repository contain the new MongoUrlRepo instance and then we can use all its function as:
-this.repository.create()
-this.repository.findShortCode()  inside this class's function
-
-you can check out these function in the class MongoUrlRepo inside mongoUrl.repository.js
- 
-
-*/
-
 class UrlShortenerService {
 
-    // this constructure initilize the class variables (in js we directly define class variables during runtime)
-    // customShortCode is the shortcode that a user can select a custom url name for its long url
+
     constructor(repository, cache, allocator, encode){
         
 
@@ -69,8 +49,10 @@ class UrlShortenerService {
         }
 
 
-        // we add it in our mongoDB database 
+        // we add it in our mongoDB database
+        console.log(`[CREATE] writing "${shortUrl}" -> "${longUrl}" to MONGO`);
         await this.repository.create(shortUrl, longUrl, parsedExpiresAt);
+        console.log(`[CREATE] "${shortUrl}" saved in MONGO`);
 
         // then return the shortUrl
         return shortUrl;
@@ -85,18 +67,25 @@ class UrlShortenerService {
 
         if(cached){
 
+            console.log(`[RESOLVE] "${shortCode}" served from REDIS (cache hit)`);
             return cached;
         }
+
+        console.log(`[RESOLVE] "${shortCode}" not in Redis, falling back to MONGO`);
 
         const record = await this.repository.findShortCode(shortCode);
 
         // is Expired is the private function that we wrote at the end of the class
         if(!record || await this.isExpired(record)){
+            console.log(`[RESOLVE] "${shortCode}" not found in MONGO (or expired)`);
             throw new NotFoundError(`${shortCode} is not found`);
         }
 
+        console.log(`[RESOLVE] "${shortCode}" found in MONGO -> ${record.originalURL}`);
+
         // we are setting cache first
         await this.cache.set(shortCode, record.originalURL);
+        console.log(`[RESOLVE] "${shortCode}" backfilled into REDIS for next time`);
 
         return record.originalURL;
     }

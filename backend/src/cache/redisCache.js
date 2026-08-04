@@ -23,8 +23,14 @@ async function connectRedis() {
 class RedisCacheFunctions {
 
     async get(key){
-        
+
         const result = await client.get(key);
+
+        if (result) {
+            console.log(`[REDIS] GET hit  -> key="${key}" value="${result}"`);
+        } else {
+            console.log(`[REDIS] GET miss -> key="${key}" (not in cache)`);
+        }
 
         return result;
 
@@ -34,8 +40,10 @@ class RedisCacheFunctions {
 
         if(ttlSeconds){
             await client.set(key, value, 'EX', ttlSeconds);
+            console.log(`[REDIS] SET -> key="${key}" value="${value}" ttl=${ttlSeconds}s`);
         } else {
             await client.set(key, value);
+            console.log(`[REDIS] SET -> key="${key}" value="${value}" ttl=none`);
         }
     }
 
