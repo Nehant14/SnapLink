@@ -12,6 +12,7 @@ const client = new Redis({
 client.on('error', err => console.log('Redis Client Error', err));
 
 
+// ioredis connects automatically upon creation — no need for client.connect()
 async function connectRedis() {
     // ioredis connects automatically upon creation — no need for client.connect()
     console.log("Redis Connected Succeddfully!!!")
