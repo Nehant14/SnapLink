@@ -11,14 +11,18 @@ export class ApiError extends Error {
   }
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
 export async function createShortUrl({ longUrl, customAlias, expiresAt }) {
   const payload = { longUrl };
   if (customAlias) payload.customAlias = customAlias;
   if (expiresAt) payload.expiresAt = expiresAt;
 
+  const endpoint = `${API_BASE_URL}/api/v1/shorten`;
+
   let res;
   try {
-    res = await fetch('/api/v1/shorten', {
+    res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
