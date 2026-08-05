@@ -15,14 +15,14 @@ export default function SnapMark({ closed = false, size = 40 }) {
       <path
         className="snap-mark__hook snap-mark__hook--left"
         d="M16 12c-4.4 0-8 3.6-8 8s3.6 8 8 8"
-        stroke="var(--snap-500)"
+        stroke="var(--accent-strong)"
         strokeWidth="3.5"
         strokeLinecap="round"
       />
       <path
         className="snap-mark__hook snap-mark__hook--right"
         d="M24 12c4.4 0 8 3.6 8 8s-3.6 8-8 8"
-        stroke="var(--link-500)"
+        stroke="var(--text-primary)"
         strokeWidth="3.5"
         strokeLinecap="round"
       />

@@ -1,39 +1,93 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* ---- Token system ---- */
-  /* Ink: base surfaces */
-  --ink-950: #0F1216;
-  --ink-900: #161A20;
-  --ink-800: #1E232B;
-  --ink-700: #2A313C;
-  --ink-600: #3A424F;
+  /* ---- Raw palette ---- */
+  --cream: #FDFBF7;
+  --sage: #9CAF88;
+  --sage-deep: #8BA076;
+  --greige: #B0A89E;
+  --charcoal: #4A4E51;
 
-  /* Steel: text + muted */
-  --steel-100: #ECEEF1;
-  --steel-300: #C4CAD3;
-  --steel-500: #7C8394;
+  --obsidian: #181A18;
+  --deep-sage: #4A5D43;
+  --deep-sage-light: #5B7053;
+  --dark-greige: #2A2E2A;
+  --off-white: #E6E8E5;
 
-  /* Snap: primary accent (brass/hazard clip yellow) */
-  --snap-500: #FFC94A;
-  --snap-400: #FFD873;
-  --snap-900: #3A2B08;
+  /* ---- Semantic tokens (light mode = default) ---- */
+  --bg-page: var(--cream);
+  --bg-surface: #FFFFFF;
+  --bg-surface-muted: #F6F3EC;
+  --border-color: var(--greige);
+  --text-primary: var(--charcoal);
+  --text-muted: #75797C;
+  --accent: var(--sage);
+  --accent-strong: var(--sage-deep);
+  --accent-contrast: var(--charcoal);
+  --error-500: #C1666B;
+  --error-bg: rgba(193, 102, 107, 0.12);
+  --error-border: rgba(193, 102, 107, 0.35);
+  --shadow-color: rgba(74, 78, 81, 0.05);
 
-  /* Link: secondary accent (cool signal blue) */
-  --link-500: #5B8DEF;
-  --link-400: #85AAF5;
+  /* Button tokens (Primary) */
+  --btn-bg: var(--sage);
+  --btn-text: var(--charcoal);
+  --btn-hover-bg: var(--sage-deep);
 
-  /* Signal: status colors */
-  --error-500: #F0665E;
-  --error-900: #3A1512;
+  /* Button tokens (Secondary) */
+  --btn-secondary-bg: var(--cream);
+  --btn-secondary-border: var(--greige);
+  --btn-secondary-text: var(--charcoal);
+  --btn-secondary-hover-bg: #F4F1EA;
 
-  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  /* Input tokens */
+  --input-bg: var(--cream);
+  --input-border: var(--greige);
+  --input-text: var(--charcoal);
+
+  --font-display: 'Fraunces', 'Space Grotesk', 'Segoe UI', serif;
   --font-body: 'Inter', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+
+  --theme-transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-page: var(--obsidian);
+  --bg-surface: var(--dark-greige);
+  --bg-surface-muted: #202220;
+  --border-color: #3A3E3A;
+  --text-primary: var(--off-white);
+  --text-muted: #A4A6A3;
+  --accent: var(--deep-sage-light);
+  --accent-strong: #6B8560;
+  --accent-contrast: var(--obsidian);
+  --error-500: #E08A85;
+  --error-bg: rgba(224, 138, 133, 0.12);
+  --error-border: rgba(224, 138, 133, 0.35);
+  --shadow-color: rgba(0, 0, 0, 0.25);
+
+  /* Button tokens (Primary) */
+  --btn-bg: var(--deep-sage);
+  --btn-text: var(--off-white);
+  --btn-hover-bg: var(--deep-sage-light);
+
+  /* Button tokens (Secondary) */
+  --btn-secondary-bg: var(--obsidian);
+  --btn-secondary-border: var(--dark-greige);
+  --btn-secondary-text: var(--off-white);
+  --btn-secondary-hover-bg: #202220;
+
+  /* Input tokens */
+  --input-bg: var(--obsidian);
+  --input-border: #3A3E3A;
+  --input-text: var(--off-white);
 }
 
 * {
@@ -45,16 +99,24 @@ html, body {
   padding: 0;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
-  background: var(--ink-950);
-  color: var(--steel-100);
+  background: var(--bg-page);
+  color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  overflow-x: hidden;
+  transition: var(--theme-transition);
 }
 
 #root {
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
 }
 
 button {
@@ -62,12 +124,12 @@ button {
 }
 
 a {
-  color: var(--link-400);
+  color: var(--accent-strong);
 }
 
 ::selection {
-  background: var(--snap-500);
-  color: var(--ink-950);
+  background: var(--accent);
+  color: var(--accent-contrast);
 }
 
 /* Respect reduced-motion preferences */
@@ -81,6 +143,6 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--snap-500);
+  outline: 2px solid var(--accent-strong);
   outline-offset: 2px;
 }
