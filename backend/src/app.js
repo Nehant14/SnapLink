@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const helmet = require('helmet')
 
 const routes = require('./api/routes');
@@ -18,6 +19,7 @@ function createApp() {
 
     const app = express();
 
+    app.use(cors());
     app.use(helmet());
     //express.json() is middleware that parses incoming requests with a JSON body and stores the parsed object in req.body.
     app.use(express.json());

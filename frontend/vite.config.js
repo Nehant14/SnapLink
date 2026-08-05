@@ -10,7 +10,7 @@ export default defineConfig({
       // so the browser never has to deal with cross-origin requests.
       // Change the target if your backend runs on a different port.
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://snaplink-fm4a.onrender.com',
         changeOrigin: true,
       },
     },
