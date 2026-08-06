@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function ShortenForm({ onSubmit, loading, fieldErrors }) {
+export default function ShortenForm({ onSubmit, loading, fieldErrors, onFocusInput }) {
   const [longUrl, setLongUrl] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [customAlias, setCustomAlias] = useState('');
@@ -30,6 +30,7 @@ export default function ShortenForm({ onSubmit, loading, fieldErrors }) {
           placeholder="https://example.com/a/very/long/path?that=needs&shortening=true"
           value={longUrl}
           onChange={(e) => setLongUrl(e.target.value)}
+          onFocus={onFocusInput}
           required
           className="field__input field__input--main"
           autoComplete="off"
