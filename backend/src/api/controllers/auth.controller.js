@@ -2,10 +2,14 @@ const config = require("../../configs/index")
 
 function setAuthCookie(res, token){
 
+    const isProd = config.nodeEnv === 'production';
     res.cookie(config.cookies.tokenName, token, {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: config.nodeEnv === 'production',
+        // SameSite=None is required for cross-origin requests (e.g. Vercel → Render).
+        // It must be paired with Secure=true; in dev we fall back to Lax so
+        // localhost still works without HTTPS.
+        sameSite: isProd ? 'none' : 'lax',
+        secure: isProd,
         maxAge: config.auth.cookieMaxAgeMs
     });
 
