@@ -6,11 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // Forwards API calls to the SnapLink backend during development
+      // Forwards API calls to the SnapLink backend during local dev
       // so the browser never has to deal with cross-origin requests.
-      // Change the target if your backend runs on a different port.
+      // Override with VITE_DEV_API_PROXY_TARGET if your backend runs
+      // somewhere other than localhost:4000 (e.g. a different port).
       '/api': {
-        target: 'https://snaplink-fm4a.onrender.com',
+        target: process.env.VITE_DEV_API_PROXY_TARGET || 'http://localhost:4000',
         changeOrigin: true,
       },
     },

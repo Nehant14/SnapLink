@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ShortenForm from '../components/ShortenForm';
 import ResultCard from '../components/ResultCard';
 import QrPanel from '../components/QrPanel';
 import SnapMark from '../components/SnapMark';
 import ThemeToggle from '../components/ThemeToggle';
 import { createShortUrl, ApiError } from '../lib/api';
-import { addHistoryEntry } from '../lib/history';
+import { useAuth } from '../context/AuthContext';
 import '../App.css';
 
 function getInitialTheme() {
@@ -30,6 +30,8 @@ function mapFieldErrors(detail) {
 }
 
 export default function HomePage() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [result, setResult] = useState(null);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -63,6 +65,11 @@ export default function HomePage() {
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
   }
 
+  async function handleLogout() {
+    await logout();
+    navigate('/');
+  }
+
   function handleInputFocus() {
     if (result) setEditing(true);
   }
@@ -74,10 +81,11 @@ export default function HomePage() {
 
     try {
       const { shortUrl } = await createShortUrl({ longUrl, customAlias, expiresAt });
-      const entry = { shortUrl, longUrl };
-      setResult(entry);
+      setResult({ shortUrl, longUrl });
       setEditing(false);
-      addHistoryEntry(entry);
+      // No local history bookkeeping needed — the backend already recorded
+      // this against the account (if signed in) or the anon session cookie
+      // (if not), and HistoryPage reads it straight from there.
     } catch (err) {
       if (err instanceof ApiError) {
         const mapped = mapFieldErrors(err.detail);
@@ -103,7 +111,23 @@ export default function HomePage() {
           <SnapMark size={34} />
           <span>SnapLink</span>
         </div>
-        <ThemeToggle isDark={theme === 'dark'} onToggle={toggleTheme} />
+
+        <div className="header-actions">
+          {user ? (
+            <div className="account-menu">
+              <span className="account-menu__email" title={user.email}>{user.email}</span>
+              <button type="button" className="auth-button auth-button--ghost" onClick={handleLogout}>
+                Log out
+              </button>
+            </div>
+          ) : (
+            <div className="auth-buttons">
+              <Link to="/signin" className="auth-button auth-button--ghost">Sign in</Link>
+              <Link to="/signup" className="auth-button auth-button--primary">Sign up</Link>
+            </div>
+          )}
+          <ThemeToggle isDark={theme === 'dark'} onToggle={toggleTheme} />
+        </div>
       </header>
 
       <main className="hero">
@@ -125,6 +149,7 @@ export default function HomePage() {
               loading={loading}
               fieldErrors={fieldErrors}
               onFocusInput={handleInputFocus}
+              allowCustomExpiry={Boolean(user)}
             />
             {formError && <p className="form-error" role="alert">{formError}</p>}
 
@@ -148,7 +173,12 @@ export default function HomePage() {
       </main>
 
       <footer className="site-footer">
-        <p>Short links may expire if you set an expiry date. Limited to 100 requests every 15 minutes per IP.</p>
+        <p>
+          {user
+            ? 'Your links are saved to your account and kept forever, unless you set an expiry.'
+            : "Links made without an account expire after 48 hours — sign up before then to keep them forever."}
+          {' '}Limited to 100 requests every 15 minutes per IP.
+        </p>
       </footer>
     </div>
   );

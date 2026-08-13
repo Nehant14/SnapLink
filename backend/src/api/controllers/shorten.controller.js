@@ -9,6 +9,13 @@ async function create(req, res, next){
 
         const {longUrl, customAlias, expiresAt} = req.body;
 
+        // ownership decides the real expiry (see urlShortener.service.js) —
+        // logged-in users get their custom expiresAt honored (or forever),
+        // anonymous visitors always get a hard 48h expiry regardless of
+        // what they sent.
+        const userId = req.user?.id || null;
+        const anonSessionId = userId ? null : (req.anonSessionId || null);
+
         // it is the shortCode
 
         // app.locals are global variable that will be set in express app and will be used by everyone ex:
@@ -27,7 +34,9 @@ async function create(req, res, next){
         const shortCode = await req.app.locals.urlShortenerService.createShortUrl({
             longUrl : longUrl,
             customShortCode : customAlias,
-            expiresAt : expiresAt
+            expiresAt : expiresAt,
+            userId : userId,
+            anonSessionId : anonSessionId
         });
 
         // it is the short url, it will be a string that contain baseUrl + shortCode like : bitly.com -> is baseUrl and 3lhjv3k-> is shortcode 
