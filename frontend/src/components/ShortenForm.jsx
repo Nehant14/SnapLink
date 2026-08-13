@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function ShortenForm({ onSubmit, loading, fieldErrors, onFocusInput }) {
+export default function ShortenForm({ onSubmit, loading, fieldErrors, onFocusInput, allowCustomExpiry = false }) {
   const [longUrl, setLongUrl] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [customAlias, setCustomAlias] = useState('');
@@ -13,7 +13,9 @@ export default function ShortenForm({ onSubmit, loading, fieldErrors, onFocusInp
       customAlias: customAlias.trim() || undefined,
       // datetime-local has no timezone info; treat it as local time and
       // convert to the ISO string the backend's zod schema expects.
-      expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
+      // Only ever sent when signed in — anonymous submissions never include
+      // this, since the backend forces a 48h expiry for them regardless.
+      expiresAt: allowCustomExpiry && expiresAt ? new Date(expiresAt).toISOString() : undefined,
     });
   }
 
@@ -45,7 +47,7 @@ export default function ShortenForm({ onSubmit, loading, fieldErrors, onFocusInp
         onClick={() => setShowOptions((v) => !v)}
         aria-expanded={showOptions}
       >
-        {showOptions ? 'Hide options' : 'Customize alias or expiry'}
+        {showOptions ? 'Hide options' : allowCustomExpiry ? 'Customize alias or expiry' : 'Customize alias'}
       </button>
 
       {showOptions && (
@@ -69,19 +71,28 @@ export default function ShortenForm({ onSubmit, loading, fieldErrors, onFocusInp
             {fieldErrors.customAlias && <p className="field__error">{fieldErrors.customAlias}</p>}
           </div>
 
-          <div className="field">
-            <label htmlFor="expiresAt" className="field__label">
-              Expires at <span className="field__hint">optional</span>
-            </label>
-            <input
-              id="expiresAt"
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
-              className="field__input"
-            />
-            {fieldErrors.expiresAt && <p className="field__error">{fieldErrors.expiresAt}</p>}
-          </div>
+          {allowCustomExpiry ? (
+            <div className="field">
+              <label htmlFor="expiresAt" className="field__label">
+                Expires at <span className="field__hint">optional · leave blank to keep forever</span>
+              </label>
+              <input
+                id="expiresAt"
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                className="field__input"
+              />
+              {fieldErrors.expiresAt && <p className="field__error">{fieldErrors.expiresAt}</p>}
+            </div>
+          ) : (
+            <div className="field">
+              <span className="field__label">Expires at</span>
+              <p className="field__hint field__hint--block">
+                Links made without an account expire after 48 hours. Sign up to set a custom expiry or keep links forever.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

@@ -88,6 +88,27 @@ const urlSchema = new Schema({
         type: Date,
         default: null,
         index: { expireAfterSeconds: 0 }
+    },
+
+    // set once a user is logged in when they create the link. If present,
+    // this link belongs to their account and shows up in their history
+    // from any device.
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+        index: true
+    },
+
+    // set only for links created while NOT logged in — identifies the
+    // browser (via anonSession middleware's cookie) so the link shows up
+    // in that browser's history until it expires (48h) or the browser
+    // signs up, in which case it's migrated onto the new userId and this
+    // field is cleared.
+    anonSessionId: {
+        type: String,
+        default: null,
+        index: true
     }
 
 }, {

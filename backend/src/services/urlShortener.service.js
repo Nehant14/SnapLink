@@ -5,17 +5,18 @@ const {ConflictError, NotFoundError} = require("../utils/error")
 class UrlShortenerService {
 
 
-    constructor(repository, cache, allocator, encode){
+    constructor(repository, cache, allocator, encode, anonLinkTtlMs = 48 * 60 * 60 * 1000){
         
 
         this.repository = repository;   // we get MongoUrlRepo's instance as argument so we do the done line else if not provided then we can directly do like : this.repository = new MongoUrlRepo;  which automatically make the instance for us to work with but all the imports need -> we are doing that in app.js not here
         this.cache = cache;           // e.g. redisCache instance
         this.allocator = allocator;   // e.g. RangeAllocator instance
         this.encode = encode;         // base62.encode function
+        this.anonLinkTtlMs = anonLinkTtlMs;   // hard expiry window for links created while not logged in
 
     }
 
-    async createShortUrl({ longUrl, customShortCode, expiresAt }){
+    async createShortUrl({ longUrl, customShortCode, expiresAt, userId = null, anonSessionId = null }){
 
         let shortUrl;
 
@@ -38,25 +39,57 @@ class UrlShortenerService {
             shortUrl = this.encode(numericId);
         }
 
+        // Ownership decides the expiry rule, not just whatever the client sent:
+        //  - logged in    -> honor a custom expiresAt if given, else null (forever)
+        //  - not logged in -> ALWAYS 48h from now, no matter what the client sent.
+        //    Signing up within that window migrates these onto the account and
+        //    clears the expiry (see mongoUrl.repository.migrateAnonToUser).
         let parsedExpiresAt;
 
-        if(expiresAt){
-            parsedExpiresAt = new Date(expiresAt);
+        if(userId){
+
+            parsedExpiresAt = expiresAt ? new Date(expiresAt) : null;
 
         }else{
 
-            parsedExpiresAt = null;
+            parsedExpiresAt = new Date(Date.now() + this.anonLinkTtlMs);
         }
 
 
         // we add it in our mongoDB database
         console.log(`[CREATE] writing "${shortUrl}" -> "${longUrl}" to MONGO`);
-        await this.repository.create(shortUrl, longUrl, parsedExpiresAt);
+        await this.repository.create(shortUrl, longUrl, parsedExpiresAt, {
+            userId,
+            // an anonymous session id only matters (and is only stored) for
+            // anonymous links — a logged-in link is never anon-scoped.
+            anonSessionId: userId ? null : anonSessionId
+        });
         console.log(`[CREATE] "${shortUrl}" saved in MONGO`);
 
         // then return the shortUrl
         return shortUrl;
 
+
+    }
+
+
+    // Returns this visitor's link history:
+    //  - logged in            -> every link tied to their account (any device)
+    //  - anonymous w/ cookie  -> links tied to this browser's session (only
+    //                            ever ≤48h old, since older ones are already
+    //                            TTL-deleted by Mongo)
+    //  - neither               -> nothing to show
+    async getHistory(userId, anonSessionId){
+
+        if(userId){
+            return this.repository.findByUser(userId);
+        }
+
+        if(anonSessionId){
+            return this.repository.findByAnonSession(anonSessionId);
+        }
+
+        return [];
 
     }
 

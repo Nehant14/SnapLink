@@ -30,7 +30,7 @@ class MongoUrlRepo {
     }
 
 
-    async create(shortCode, longUrl, expiresAt){
+    async create(shortCode, longUrl, expiresAt, { userId = null, anonSessionId = null } = {}){
 
         try {
 
@@ -38,7 +38,9 @@ class MongoUrlRepo {
             const doc = await this.model.create({
                 shortURL : shortCode,
                 originalURL : longUrl,
-                expiresAt : expiresAt
+                expiresAt : expiresAt,
+                userId : userId,
+                anonSessionId : anonSessionId
             })
 
             return doc.toObject();  // thise return a js object that contain the above data and many other things
@@ -50,6 +52,42 @@ class MongoUrlRepo {
             }
             throw err;  // this is important to through our error + js error too to stop the work with err
         }
+
+    }
+
+    // history for a logged-in user — spans devices, since it's keyed on
+    // their account, not a browser cookie.
+    async findByUser(userId){
+
+        return this.model.find({ userId }).sort({ created_at: -1 }).lean();
+
+    }
+
+    // history for a browser that hasn't signed up. Since anonymous links
+    // carry a hard 48h TTL (Mongo reaps them automatically), this query
+    // naturally only ever returns links from "the current session" —
+    // nothing older can still exist.
+    async findByAnonSession(anonSessionId){
+
+        return this.model.find({ anonSessionId }).sort({ created_at: -1 }).lean();
+
+    }
+
+    // Called once, right after a brand-new account is created. Reassigns
+    // every still-alive 48h-default link from this browser's anonymous
+    // session onto the new account, and clears expiresAt so they become
+    // permanent — "signing up rescues your links from expiring."
+    // Deliberately does NOT touch anonymous links where the (anonymous)
+    // user had... they can't set a custom expiry, so every anonSessionId
+    // link matched here is, by construction, a 48h-default link.
+    async migrateAnonToUser(anonSessionId, userId){
+
+        if(!anonSessionId) return { matchedCount: 0, modifiedCount: 0 };
+
+        return this.model.updateMany(
+            { anonSessionId, userId: null },
+            { $set: { userId, expiresAt: null }, $unset: { anonSessionId: "" } }
+        );
 
     }
 

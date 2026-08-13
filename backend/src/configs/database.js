@@ -6,7 +6,7 @@ const connectDB = async () => {
 
     try {
 
-        await mongoose.connect(config.db.uri);
+        await mongoose.connect(config.db.uri, { dbName: config.db.name });
 
         console.log("Database Connected Successfully!!!");
 

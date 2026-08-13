@@ -25,6 +25,9 @@ export async function createShortUrl({ longUrl, customAlias, expiresAt }) {
     res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      // sends the auth cookie (if logged in) and/or the anon-session cookie
+      // so the backend can decide ownership + the right expiry rule.
+      credentials: 'include',
       body: JSON.stringify(payload),
     });
   } catch {
@@ -46,4 +49,31 @@ export async function createShortUrl({ longUrl, customAlias, expiresAt }) {
   }
 
   return body; // { shortUrl }
+}
+
+// GET /api/v1/history — server decides what to return based on the
+// cookies sent: the logged-in user's account history, or the current
+// anonymous session's history, or an empty list if neither.
+export async function fetchHistory() {
+  const endpoint = `${API_BASE_URL}/api/v1/history`;
+
+  let res;
+  try {
+    res = await fetch(endpoint, { credentials: 'include' });
+  } catch {
+    throw new ApiError("Can't reach the SnapLink server. Is the backend running?");
+  }
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch {
+    // no JSON body
+  }
+
+  if (!res.ok) {
+    throw new ApiError(body?.message || 'Could not load history.', { status: res.status });
+  }
+
+  return body?.items || [];
 }

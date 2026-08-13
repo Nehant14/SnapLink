@@ -6,7 +6,7 @@
 
 
 const REQUIRED_VAL = ["PORT", "MONGODB_NAME", "MONGODB_URL", "REDIS_HOST", "REDIS_PORT", 
-                    "REDIS_USERNAME", "REDIS_PASSWORD", "REDIS_TTL"];   // create arry of strings
+                    "REDIS_USERNAME", "REDIS_PASSWORD", "REDIS_TTL", "JWT_SECRET"];   // create arry of strings
 
 
 function getConfig(){
@@ -43,6 +43,31 @@ function getConfig(){
 
     // block size used by RangeAllocator to reserve numeric IDs in batches
     const id_gen_block_size = Number(process.env.IDGEN_BLOCK_SIZE) || 1000;
+
+    // --- auth ---
+    const jwt_secret = process.env.JWT_SECRET;
+    const jwt_expires_in = process.env.JWT_EXPIRES_IN || '7d';
+    const bcrypt_salt_rounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+    // how long the JWT cookie itself lives in the browser, in ms. Kept in
+    // sync with jwt_expires_in's default (7 days) unless overridden.
+    const auth_cookie_max_age_ms = Number(process.env.AUTH_COOKIE_MAX_AGE_MS) || 7 * 24 * 60 * 60 * 1000;
+
+    // --- anonymous session (pre-signup link history tracking) ---
+    // cookie that identifies a browser session before the visitor has an
+    // account, so history and 48h-expiry links can be traced back to "this
+    // browser" and later migrated onto an account on signup.
+    const anon_session_cookie_name = process.env.ANON_SESSION_COOKIE_NAME || 'anon_session_id';
+    const anon_session_max_age_ms = Number(process.env.ANON_SESSION_MAX_AGE_MS) || 90 * 24 * 60 * 60 * 1000;
+
+    // how long an anonymous (no-account) link lives before it's reaped by
+    // Mongo's TTL index, in ms. Fixed business rule, not meant to be tuned
+    // per-deployment, but kept overridable for testing.
+    const anon_link_ttl_ms = Number(process.env.ANON_LINK_TTL_MS) || 48 * 60 * 60 * 1000;
+
+    // origin the frontend is served from — needed for CORS once cookies
+    // (credentials) are involved, since app.use(cors()) with no options
+    // does not allow credentialed cross-origin requests.
+    const frontend_origin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 
 
 
@@ -82,6 +107,32 @@ function getConfig(){
         // used by RangeAllocator to reserve blocks of numeric ids at once
         idGen : {
             blockSize : id_gen_block_size
+        },
+
+        // used by auth.service.js to sign/verify JWTs and hash passwords
+        auth : {
+            jwtSecret : jwt_secret,
+            jwtExpiresIn : jwt_expires_in,
+            bcryptSaltRounds : bcrypt_salt_rounds,
+            cookieMaxAgeMs : auth_cookie_max_age_ms
+        },
+
+        // name of the httpOnly cookie the JWT is stored in
+        cookies : {
+            tokenName : 'token'
+        },
+
+        // used by anonSession middleware to track pre-signup browsers
+        anonSession : {
+            cookieName : anon_session_cookie_name,
+            maxAgeMs : anon_session_max_age_ms,
+            linkTtlMs : anon_link_ttl_ms
+        },
+
+        // used by app.js for the CORS allow-list (credentialed requests
+        // can't use the wildcard '*' origin)
+        cors : {
+            origin : frontend_origin
         },
 
 
