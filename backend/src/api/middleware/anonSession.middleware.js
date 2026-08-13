@@ -21,10 +21,13 @@ function ensureAnonSession(req, res, next){
 
         anonId = crypto.randomUUID();
 
+        const isProd = config.nodeEnv === 'production';
         res.cookie(config.anonSession.cookieName, anonId, {
             httpOnly: true,
-            sameSite: 'lax',
-            secure: config.nodeEnv === 'production',
+            // SameSite=None + Secure required for cross-origin cookie flow
+            // (Vercel frontend → Render backend). Falls back to Lax in dev.
+            sameSite: isProd ? 'none' : 'lax',
+            secure: isProd,
             maxAge: config.anonSession.maxAgeMs
         });
     }
