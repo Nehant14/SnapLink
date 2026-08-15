@@ -4,6 +4,7 @@ DOTENV.config();
 const { createApp } = require('./src/app');
 const config = require('./src/configs');
 const { connectDB, closeDB } = require('./src/configs/database');
+const publisher = require('./src/infrastructure/rabbitmq/publisher');
 
 let server;
 
@@ -13,6 +14,11 @@ async function start() {
 
         // connect to MongoDB before accepting any traffic
         await connectDB();
+
+        // Non-fatal: if RabbitMQ is unreachable (or RABBITMQ_URL isn't set
+        // in dev), log and keep booting — click-event publishing just
+        // no-ops until it reconnects, the redirect path never depends on it.
+        await publisher.connect();
 
         const app = createApp();
 
@@ -39,10 +45,12 @@ async function shutdown(signal) {
     if (server) {
         server.close(async () => {
             console.log('HTTP server closed');
+            await publisher.close();
             await closeDB();
             process.exit(0);
         });
     } else {
+        await publisher.close();
         await closeDB();
         process.exit(0);
     }

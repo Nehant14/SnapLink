@@ -94,6 +94,11 @@ class UrlShortenerService {
     }
 
 
+    // Returns { longUrl, userId } — userId (owner of the short link, or
+    // null for anonymous links) rides along so the redirect controller can
+    // include it on the click.recorded event without a second DB lookup.
+    // Cached as a small JSON blob rather than a bare string so a cache hit
+    // still carries userId.
     async resolveShortCode(shortCode){
 
         const cached = await this.cache.get(shortCode);
@@ -101,7 +106,7 @@ class UrlShortenerService {
         if(cached){
 
             console.log(`[RESOLVE] "${shortCode}" served from REDIS (cache hit)`);
-            return cached;
+            return JSON.parse(cached);
         }
 
         console.log(`[RESOLVE] "${shortCode}" not in Redis, falling back to MONGO`);
@@ -116,11 +121,16 @@ class UrlShortenerService {
 
         console.log(`[RESOLVE] "${shortCode}" found in MONGO -> ${record.originalURL}`);
 
+        const resolved = {
+            longUrl: record.originalURL,
+            userId: record.userId ? String(record.userId) : null
+        };
+
         // we are setting cache first
-        await this.cache.set(shortCode, record.originalURL);
+        await this.cache.set(shortCode, JSON.stringify(resolved));
         console.log(`[RESOLVE] "${shortCode}" backfilled into REDIS for next time`);
 
-        return record.originalURL;
+        return resolved;
     }
 
 

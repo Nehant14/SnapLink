@@ -13,6 +13,7 @@ async function get(req, res, next){
 
         const items = records.map((r) => ({
             shortUrl: `${config.baseUrl}/${r.shortURL}`,
+            shortCode: r.shortURL,
             longUrl: r.originalURL,
             createdAt: r.created_at,
             expiresAt: r.expiresAt,   // null means "never expires"
