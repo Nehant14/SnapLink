@@ -24,7 +24,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks: [snaplink]
-    # Not published by default — both backend and analytics-service reach
+    # Not published by default — both backend and analytics reach
     # it over the internal compose network. Uncomment to hit the
     # management UI directly from the host (http://localhost:15672):
     # ports:
@@ -79,9 +79,9 @@ services:
     # ports:
     #   - "4000:4000"
 
-  analytics-service:
+  analytics:
     build:
-      context: ./analytics-service
+      context: ./analytics
     restart: unless-stopped
     environment:
       PORT: 4000
@@ -113,7 +113,7 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-      - analytics-service
+      - analytics
     ports:
       - "${FRONTEND_PORT:-8080}:80"
     networks: [snaplink]
