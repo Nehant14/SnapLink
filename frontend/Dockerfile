@@ -13,6 +13,11 @@ COPY . .
 ARG VITE_API_BASE_URL=""
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# Same reasoning — nginx.conf proxies /api/v1/analytics/ to
+# analytics-service on the same origin.
+ARG VITE_ANALYTICS_API_URL=""
+ENV VITE_ANALYTICS_API_URL=$VITE_ANALYTICS_API_URL
+
 RUN npm run build
 
 # --- Serve stage ---

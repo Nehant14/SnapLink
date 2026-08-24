@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SnapMark from '../components/SnapMark';
+import LinkStats from '../components/LinkStats';
 import { fetchHistory, ApiError } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import '../App.css';
@@ -21,6 +22,9 @@ export default function HistoryPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // shortCode of the row whose stats modal is open, or null — a plain
+  // string is enough since only one modal can be open at a time.
+  const [statsShortCode, setStatsShortCode] = useState(null);
 
   useEffect(() => {
     // Wait for the auth check to settle first — fetchHistory works either
@@ -87,11 +91,28 @@ export default function HistoryPage() {
                   {item.shortUrl.replace(/^https?:\/\//, '')}
                 </a>
                 <span className="history-page__expiry">{formatExpiry(item.expiresAt)}</span>
+                {user && (
+                  // Anonymous links don't carry a stable userId, so the
+                  // analytics-service ownership check can never succeed
+                  // for them — the button is only shown once signed in.
+                  <button
+                    className="history-page__stats-btn"
+                    onClick={() => setStatsShortCode(item.shortCode)}
+                    aria-label={`View stats for ${item.shortUrl}`}
+                    title="View stats"
+                  >
+                    📊 Stats
+                  </button>
+                )}
               </li>
             ))}
           </ul>
         )}
       </main>
+
+      {statsShortCode && (
+        <LinkStats shortCode={statsShortCode} onClose={() => setStatsShortCode(null)} />
+      )}
 
       <footer className="site-footer">
         <p>

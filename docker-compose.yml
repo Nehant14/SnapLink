@@ -15,6 +15,21 @@ services:
       - redis_data:/data
     networks: [snaplink]
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks: [snaplink]
+    # Not published by default — both backend and analytics-service reach
+    # it over the internal compose network. Uncomment to hit the
+    # management UI directly from the host (http://localhost:15672):
+    # ports:
+    #   - "15672:15672"
+
   backend:
     build:
       context: ./backend
@@ -49,9 +64,14 @@ services:
       ANON_SESSION_COOKIE_NAME: ${ANON_SESSION_COOKIE_NAME:-anon_session_id}
       ANON_SESSION_MAX_AGE_MS: ${ANON_SESSION_MAX_AGE_MS:-7776000000}
       ANON_LINK_TTL_MS: ${ANON_LINK_TTL_MS:-172800000}
+
+      # amqp://guest:guest@rabbitmq:5672 by default — matches the
+      # rabbitmq service's own default creds above.
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672}
     depends_on:
       - mongo
       - redis
+      - rabbitmq
     networks: [snaplink]
     # Not published to the host by default — the frontend's nginx proxies
     # to it over the internal compose network. Uncomment to hit it
@@ -59,12 +79,41 @@ services:
     # ports:
     #   - "4000:4000"
 
+  analytics-service:
+    build:
+      context: ./analytics-service
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      NODE_ENV: ${NODE_ENV:-production}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8080}
+
+      # Same Mongo cluster as the backend, separate DB name/collection.
+      MONGODB_URL: mongodb://mongo:27017
+      MONGODB_NAME: ${ANALYTICS_MONGODB_NAME:-snaplink_analytics}
+
+      # Must match the backend's JWT_SECRET exactly — this service
+      # decodes the same auth cookie itself rather than calling back to
+      # the backend to verify ownership.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672}
+    depends_on:
+      - mongo
+      - rabbitmq
+    networks: [snaplink]
+    # Not published to the host by default — the frontend's nginx proxies
+    # /api/v1/analytics/ to it over the internal compose network.
+    # ports:
+    #   - "4001:4000"
+
   frontend:
     build:
       context: ./frontend
     restart: unless-stopped
     depends_on:
       - backend
+      - analytics-service
     ports:
       - "${FRONTEND_PORT:-8080}:80"
     networks: [snaplink]
@@ -72,6 +121,7 @@ services:
 volumes:
   mongo_data:
   redis_data:
+  rabbitmq_data:
 
 networks:
   snaplink:

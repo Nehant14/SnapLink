@@ -69,6 +69,20 @@ function getConfig(){
     // does not allow credentialed cross-origin requests.
     const frontend_origin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 
+    // --- rabbitmq (click-event publishing for the analytics-service) ---
+    // Deliberately NOT in REQUIRED_VAL: in production we want a hard
+    // failure if it's missing (a deploy with no queue is a mistake), but
+    // in dev we'd rather boot with publishing disabled than block someone
+    // from running the app without RabbitMQ installed locally.
+    const rabbitmq_url = process.env.RABBITMQ_URL || null;
+
+    if (!rabbitmq_url) {
+        if (node_env === 'production') {
+            throw new Error('Missing required environment variable: RABBITMQ_URL (required in production)');
+        }
+        console.warn('[config] RABBITMQ_URL not set — click-event publishing is disabled for this run.');
+    }
+
 
 
     // below dictonary will contain all the variables and this will be return by this function
@@ -133,6 +147,12 @@ function getConfig(){
         // can't use the wildcard '*' origin)
         cors : {
             origin : frontend_origin
+        },
+
+        // used by infrastructure/rabbitmq/publisher.js — url is null when
+        // unset in dev (publishing just no-ops in that case)
+        rabbitmq : {
+            url : rabbitmq_url
         },
 
 
