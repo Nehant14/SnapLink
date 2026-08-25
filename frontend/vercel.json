@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/history", "destination": "/index.html" },
+    { "source": "/signin",  "destination": "/index.html" },
+    { "source": "/signup",  "destination": "/index.html" },
+    { "source": "/api/v1/analytics/:path*", "destination": "https://analytics-42qx.onrender.com/api/v1/analytics/:path*" },
+    { "source": "/api/:path*", "destination": "https://snaplink-fm4a.onrender.com/api/:path*" },
+    { "source": "/:code([0-9a-zA-Z-]{1,32})", "destination": "https://snaplink-fm4a.onrender.com/:code" }
+  ]
+}
