@@ -81,7 +81,7 @@ services:
 
   analytics-service:
     build:
-      context: ./analytics-service
+      context: ./analytics          # <-- fixed: was ./analytics-service
     restart: unless-stopped
     environment:
       PORT: 4000
